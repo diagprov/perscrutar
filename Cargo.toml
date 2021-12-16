@@ -1,0 +1,26 @@
+[workspace]
+
+members = ["perscrutar-lib",
+           "perscrutar-cmd"]
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+incremental = true
+
+[profile.bench]
+opt-level = 3
+debug = false
+rpath = false
+lto = "thin"
+incremental = true
+debug-assertions = false
+
+[profile.dev]
+opt-level = 0
+
+[profile.test]
+opt-level = 0
+incremental = true
+debug-assertions = true
+debug = true
