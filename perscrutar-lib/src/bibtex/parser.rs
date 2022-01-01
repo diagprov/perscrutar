@@ -30,6 +30,7 @@ use nom::{
     Err, IResult,
 };
 
+use nom_unicode::is_alphanumeric as is_alphanumeric_unicode;
 use crate::bibtex::data::*;
 
 /**
@@ -52,10 +53,10 @@ fn alphabeticlabel<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &
 }
 
 fn alphanumericplus<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
-  let chars = "-_.,;:/";
+  let chars = "-_.,;:/ ";
 
   take_while(move |c: char| {
-    is_alphanumeric(c as u8) || chars.contains(c)
+    is_alphanumeric_unicode(c as char) || chars.contains(c)
   })(i)
 }
 
@@ -88,12 +89,18 @@ fn string_brc<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 
 fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
   i: &'a str,
-) -> IResult<&'a str, (&'a str, JsonValue), E> {
+) -> IResult<&'a str, (&'a str, &'a str), E> {
   separated_pair(
     preceded(sp, alphabeticlabel),
     cut(preceded(sp, char('='))),
-    ,
+    preceded(sp, alt((string_spm, string_brc)))
   )(i)
+}
+
+fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+  i: &'a str,
+) -> IResult<&'a str, HashMap<String, String>, E> {
+
 }
 
 #[cfg(test)]
@@ -101,5 +108,16 @@ mod tests {
     
     use super::*;
 
+    #[test]
+    fn test_kv() {
+        
+        let r1 = key_value::<(&str, ErrorKind)>(" Author = {Antony Vennard}");
+        assert_eq!(r1, Ok(("", ("Author", "Antony Vennard"))));
+        println!("{:?}", r1);
+
+        let r2 = key_value::<(&str, ErrorKind)>(" Author = \"Antöny Vénnärd\",");
+        assert_eq!(r2, Ok((",", ("Author", "Antöny Vénnärd"))));
+        println!("{:?}", r2);
+    }
 }
 
