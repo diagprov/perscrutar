@@ -128,26 +128,26 @@ mod tests {
     #[test]
     fn test_kv() {
         
-        let r1 = key_value::<(&str, ErrorKind)>(" Author = {Antony Vennard}");
-        assert_eq!(r1, Ok(("", ("Author", "Antony Vennard"))));
+        let r1 = key_value::<(&str, ErrorKind)>(" Author = {Some Author}");
+        assert_eq!(r1, Ok(("", ("Author", "Some Author"))));
         println!("{:?}", r1);
 
-        let r2 = key_value::<(&str, ErrorKind)>("   Author = \"Antöny Vénnärd\",");
-        assert_eq!(r2, Ok((",", ("Author", "Antöny Vénnärd"))));
+        let r2 = key_value::<(&str, ErrorKind)>("   Author = \"Sömé Àüthör\",");
+        assert_eq!(r2, Ok((",", ("Author", "Sömé Àüthör"))));
         println!("{:?}", r2);
     
-        let r3 = key_value::<(&str, ErrorKind)>("   Author = {Antöny Vénnärd\",");
+        let r3 = key_value::<(&str, ErrorKind)>("   Author = {Sömé Àüthör\",");
         println!("{:?}", r3);
         assert_eq!(r3, Err(Failure(("\",", ErrorKind::Char))));
 
-        let r4 = key_value::<(&str, ErrorKind)>("{Author Antöny Vénnärd");
+        let r4 = key_value::<(&str, ErrorKind)>("{Author Sömé Àüthör");
         assert!(r4.is_err());
     }
 
     #[test]
     fn test_kvpairs() {
         let b1 = r#"
-        author = {Antony Vennard},
+        author = {Some Author},
         title = {Some fancy title},
         isbn = "111-111123212-1111"
            
@@ -168,7 +168,7 @@ mod tests {
 
         let _b2 = r#"
         @book{
-            author = {Antony Vennard},
+            author = {Some Author},
             title = {Some fancy title},
             isbn = {111-111123212-1111}
         }
