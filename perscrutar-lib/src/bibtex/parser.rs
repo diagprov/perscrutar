@@ -125,6 +125,10 @@ mod tests {
         let r3 = key_value::<(&str, ErrorKind)>("   Author = {Antöny Vénnärd\",");
         println!("{:?}", r3);
         assert_eq!(r3, Err(Failure(("\",", ErrorKind::Char))));
+
+        let r4 = key_value::<(&str, ErrorKind)>("{Author Antöny Vénnärd");
+        assert!(r4.is_err());
     }
+
 }
 
