@@ -118,6 +118,23 @@ fn kvlist<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     )(i)
 }
 
+/*
+fn bibentry<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+  i: &'a str,
+) -> IResult<&'a str, HashMap<String, String>, E> {
+    context(
+        "bibentry",
+        preceded(
+            char('@'),
+                
+            cut(terminated(
+                kvlist,
+                char("}"),
+            )),
+        ),
+    )(i)
+}*/
+
 #[cfg(test)]
 mod tests {
   
@@ -162,16 +179,23 @@ mod tests {
     fn test_bibentry() {
 
         let _b1 = r#"
-        @book{
-        }
-        "#;
-
-        let _b2 = r#"
-        @book{
+        @book{Ref-Name,
             author = {Some Author},
             title = {Some fancy title},
             isbn = {111-111123212-1111}
         }
+        "#;
+
+        let _b2 = r#"
+@book{Cox-CFT,
+    author = {David A. Cox},
+    title = {Primes of the form $x^2 + ny^2$: Fermat, Class Field Theory, and Complex Multiplication},
+    edition = {2nd ed.},
+    publisher = {John Wiley and Sons Inc},
+    year = {2013},
+    ISBN = {978-1-118-39018-4},
+    doi = {10.1002/9781118400722}
+}
         "#;
     }
 }
