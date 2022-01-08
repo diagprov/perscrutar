@@ -54,7 +54,7 @@ fn alphabeticlabel<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &
 }
 
 fn alphanumericplus<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
-  let chars = "-_.,;:/ ^$+";
+  let chars = "-_.,;:/ ^$+*\\";
 
   take_while(move |c: char| {
     is_alphanumeric_unicode(c as char) || chars.contains(c)
