@@ -97,15 +97,18 @@ fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
   )(i)
 }
 
+/*
 fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
   i: &'a str,
 ) -> IResult<&'a str, HashMap<String, String>, E> {
 
-}
+}*/
 
 #[cfg(test)]
 mod tests {
-    
+  
+    use nom::Err::Failure;
+    use nom::error::ErrorKind;
     use super::*;
 
     #[test]
@@ -115,9 +118,13 @@ mod tests {
         assert_eq!(r1, Ok(("", ("Author", "Antony Vennard"))));
         println!("{:?}", r1);
 
-        let r2 = key_value::<(&str, ErrorKind)>(" Author = \"Antöny Vénnärd\",");
+        let r2 = key_value::<(&str, ErrorKind)>("   Author = \"Antöny Vénnärd\",");
         assert_eq!(r2, Ok((",", ("Author", "Antöny Vénnärd"))));
         println!("{:?}", r2);
+    
+        let r3 = key_value::<(&str, ErrorKind)>("   Author = {Antöny Vénnärd\",");
+        println!("{:?}", r3);
+        assert_eq!(r3, Err(Failure(("\",", ErrorKind::Char))));
     }
 }
 
