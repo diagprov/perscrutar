@@ -16,6 +16,7 @@ The goal of this parser is to read in something like this:
 */
 
 use std::str;
+use std::collections::HashMap;
 
 use nom::{
     branch::alt,
@@ -97,12 +98,25 @@ fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
   )(i)
 }
 
-/*
-fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+fn kvlist<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
   i: &'a str,
 ) -> IResult<&'a str, HashMap<String, String>, E> {
-
-}*/
+    context(
+        "map",
+        cut(terminated(
+            map(
+            separated_list0(preceded(sp, char(',')), key_value),
+                |tuple_vec| {
+                    tuple_vec
+                    .into_iter()
+                    .map(|(k, v)| (String::from(k), String::from(v)))
+                .collect()
+                },
+            ),
+            sp,
+        )),
+    )(i)
+}
 
 #[cfg(test)]
 mod tests {
@@ -130,5 +144,34 @@ mod tests {
         assert!(r4.is_err());
     }
 
-}
+    #[test]
+    fn test_kvpairs() {
+        let b1 = r#"
+        author = {Antony Vennard},
+        title = {Some fancy title},
+        isbn = "111-111123212-1111"
+           
+        "#;
 
+        let r1 = kvlist::<(&str, ErrorKind)>(b1);
+        println!("{:?}", r1);
+        assert!(r1.is_err() == false);
+    }
+
+    #[test]
+    fn test_bibentry() {
+
+        let _b1 = r#"
+        @book{
+        }
+        "#;
+
+        let _b2 = r#"
+        @book{
+            author = {Antony Vennard},
+            title = {Some fancy title},
+            isbn = {111-111123212-1111}
+        }
+        "#;
+    }
+}
