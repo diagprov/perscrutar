@@ -27,7 +27,7 @@ use nom::{
     error::{context, convert_error, ContextError, ErrorKind, ParseError, VerboseError},
     multi::separated_list0,
     number::complete::double,
-    sequence::{delimited, preceded, separated_pair, terminated},
+    sequence::{delimited, preceded, separated_pair, terminated, tuple},
     Err, IResult,
 };
 
@@ -54,7 +54,7 @@ fn alphabeticlabel<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &
 }
 
 fn alphanumericplus<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
-  let chars = "-_.,;:/ ";
+  let chars = "-_.,;:/ ^$+";
 
   take_while(move |c: char| {
     is_alphanumeric_unicode(c as char) || chars.contains(c)
@@ -118,22 +118,36 @@ fn kvlist<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     )(i)
 }
 
-/*
+#[derive(Debug)]
+struct BibItem<'a>(&'a str, &'a str, HashMap<String, String>);
+
 fn bibentry<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
   i: &'a str,
-) -> IResult<&'a str, HashMap<String, String>, E> {
+) -> IResult<&'a str, (&str, &str, HashMap<String, String>), E> {
     context(
-        "bibentry",
+        "bibitem",
+        preceded(sp,
         preceded(
             char('@'),
-                
-            cut(terminated(
-                kvlist,
-                char("}"),
+            tuple((
+                cut(terminated(
+                    terminated(alphabeticlabel,
+                        sp),
+                    char('{'),
+                )),
+                cut(terminated(
+                    alphabeticlabel,
+                    char(','),
+                )),
+                cut(terminated(
+                    kvlist,
+                    char('}'),
+                )),
             )),
         ),
+        ),
     )(i)
-}*/
+}
 
 #[cfg(test)]
 mod tests {
@@ -159,6 +173,10 @@ mod tests {
 
         let r4 = key_value::<(&str, ErrorKind)>("{Author Sömé Àüthör");
         assert!(r4.is_err());
+
+        let r5 = key_value::<(&str, ErrorKind)>("title = {Primes of the form $x^2 + ny^2$: Fermat, Class Field Theory, and Complex Multiplication},");
+        println!("{:?}", r5);
+        assert!(r5.is_err() == false);
     }
 
     #[test]
@@ -178,7 +196,7 @@ mod tests {
     #[test]
     fn test_bibentry() {
 
-        let _b1 = r#"
+        let b1 = r#"
         @book{Ref-Name,
             author = {Some Author},
             title = {Some fancy title},
@@ -186,7 +204,7 @@ mod tests {
         }
         "#;
 
-        let _b2 = r#"
+        let b2 = r#"
 @book{Cox-CFT,
     author = {David A. Cox},
     title = {Primes of the form $x^2 + ny^2$: Fermat, Class Field Theory, and Complex Multiplication},
@@ -197,5 +215,13 @@ mod tests {
     doi = {10.1002/9781118400722}
 }
         "#;
+
+
+        let r1 = bibentry::<(&str, ErrorKind)>(b1);
+        println!("{:?}", r1);
+
+        let r2 = bibentry::<(&str, ErrorKind)>(b2);
+        println!("{:?}", r2);
+
     }
 }
